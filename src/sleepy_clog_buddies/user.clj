@@ -1,0 +1,49 @@
+(ns sleepy-clog-buddies.user
+  (:use cheshire.core)
+  (:use ring.util.response)
+  (:use clojure.walk)
+  (:require [clojurewerkz.neocons.rest :as neorest]
+            [clojurewerkz.neocons.rest.nodes :as nodes]
+            [clojurewerkz.neocons.rest.relationships :as relationships]
+            [clojurewerkz.neocons.rest.cypher :as cypher]))
+
+(defn neoconnect []
+  (neorest/connect! "http://localhost:7474/db/data/"))
+
+(defn get-all-users []
+  (neoconnect)
+  (let
+    [users (cypher/tquery "START n=node(*) WHERE n.nodetype = \"user\" RETURN n.userid as userid, n.name as name, ID(n) as id;")]
+    (response users)))
+
+(defn get-user [id]
+  (neoconnect)
+  (let 
+    [user 
+      (try
+        (nodes/get (read-string id))
+        (catch Exception e ["user_not_found"]))]
+    (cond
+      (= user ["user_not_found"]) {:status 404 :body user}
+      :else (response (assoc (:data user) "id" (:id user))))))
+
+(defn create-new-user [attributes]
+  (neoconnect)
+  (let [user 
+    (let [user-attributes (assoc attributes "nodetype" "user")]
+      (nodes/create user-attributes))]
+    (get-user (str (:id user)))))
+
+; need to handle not found users
+(defn update-user [id attributes]
+  (neoconnect)
+  (let
+    [user-attributes (merge (:data (nodes/get (read-string id))) (keywordize-keys attributes))]
+    (nodes/update (read-string id) user-attributes)
+    (get-user id)))
+
+; need to handle not found users
+(defn delete-user [id] 
+  (neoconnect)
+  (nodes/delete (read-string id))
+  {:status 204})
