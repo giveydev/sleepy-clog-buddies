@@ -1,8 +1,0 @@
-(str 8)
-(merge {:this "that"} {:the "other"})
-(merge {:this "that"} {:the "other" :this "new"})
-{name Di Gates}
-(merge {:this "that"} {:the "other" "this" "new"})
-(merge {:this "that"} (keywordize-keys {"the" "other" "this" "new"}))
-(use 'clojure.walk)
-(merge {:this "that"} (keywordize-keys {"the" "other" "this" "new"}))

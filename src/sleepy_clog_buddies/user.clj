@@ -1,4 +1,5 @@
 (ns sleepy-clog-buddies.user
+  (:use environ.core)
   (:use cheshire.core)
   (:use ring.util.response)
   (:use clojure.walk)
@@ -8,7 +9,7 @@
             [clojurewerkz.neocons.rest.cypher :as cypher]))
 
 (defn neoconnect []
-  (neorest/connect! "http://localhost:7474/db/data/"))
+  (neorest/connect! (env :neo4j-url)))
 
 (defn get-all-users []
   (neoconnect)
