@@ -1,6 +1,7 @@
 (defproject sleepy-clog-buddies "0.1.0-SNAPSHOT"
   :description "A RESTful interface for Neo4J"
   :url "http://www.givey.com"
+  :min-lein-version "2.0.0"
   :dependencies [[org.clojure/clojure "1.4.0"]
                  [compojure "1.1.5"]
                  [ring/ring-json "0.2.0"]
