@@ -1,4 +1,5 @@
 (ns sleepy-clog-buddies.handler
+  (:use environ.core)
   (:use compojure.core)
   (:use ring.util.response)
   (:require [compojure.handler :as handler]
@@ -14,7 +15,7 @@
       (GET "/" [] (scb-user/get-user id))
       (PUT    "/" {body :body} (scb-user/update-user id body))
       (DELETE "/" [] (scb-user/delete-user id))))))
-  (GET "/" [] (response {"listen" "shh"}))
+  (GET "/" [] (response {"listen" (env :neo4j-url)}))
   (route/not-found "Not Found"))
 
 (def app
