@@ -9,7 +9,7 @@
             [clojurewerkz.neocons.rest.cypher :as cypher]))
 
 (defn neoconnect []
-  (neorest/connect! "http://88af8b715:33c49854f@74d2437d0.hosted.neo4j.org:7299"))
+  (neorest/connect! (env :neo4j-url)))
 
 (defn get-all-users []
   (neoconnect)
