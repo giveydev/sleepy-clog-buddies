@@ -11,11 +11,11 @@
 (defn neoconnect []
   (neorest/connect! (env :neo4j-url)))
 
-(defn get-all-users []
+(defn get-all-nodes-of-type [nodetype]
   (neoconnect)
   (let
-    [users (cypher/tquery "START n=node(*) WHERE n.nodetype = \"user\" RETURN n.userid as userid, n.name as name, ID(n) as id;")]
-    (response users)))
+    [users (cypher/tquery (str "START n=node(*) WHERE n.nodetype = \"" nodetype "\" RETURN n as info, ID(n) as id;"))]
+    (response (map #(assoc (:data (get % "info")) "id" (get % "id")) users))))
 
 (defn get-user [id]
   (neoconnect)
