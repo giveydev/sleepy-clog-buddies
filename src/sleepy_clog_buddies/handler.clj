@@ -5,16 +5,18 @@
   (:require [compojure.handler :as handler]
             [ring.middleware.json :as middleware]
             [compojure.route :as route]
-            [sleepy-clog-buddies.user :as scb-user]))
+            [sleepy-clog-buddies.node :as scb-node]))
+  (doseq [nodetype '("users" "charities")]
+    (println nodetype))
 
 (defroutes app-routes
+  (context "/nodes/:id" [id] (defroutes node-routes
+    (GET "/" [] (scb-node/get-node id))
+    (PUT    "/" {body :body} (scb-node/update-node id body))
+    (DELETE "/" [] (scb-node/delete-node id))))
   (context "/users" [] (defroutes users-routes
-    (GET "/" [] (scb-user/get-all-nodes-of-type "user"))
-    (POST "/" {body :body} (scb-user/create-new-user body))
-    (context "/:id" [id] (defroutes user-routes
-      (GET "/" [] (scb-user/get-user id))
-      (PUT    "/" {body :body} (scb-user/update-user id body))
-      (DELETE "/" [] (scb-user/delete-user id))))))
+    (GET "/" [] (scb-node/get-all-nodes-of-type "user"))
+    (POST "/" {body :body} (scb-node/create-node "user" body))))
   (GET "/" [] (response {"listen" "shh"}))
   (route/not-found "Not Found"))
 
