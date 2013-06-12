@@ -17,7 +17,9 @@
     (scb-rel/create-relationship fromid toid reltype body))
 
   (context "/relationships/:id" [id] (defroutes relationship-routes
-    (GET "/" [] (scb-rel/get-relationship id))))
+    (GET "/" [] (scb-rel/get-relationship id))
+    (PUT    "/" {body :body} (scb-rel/update-relationship id body))
+    (DELETE "/" [] (scb-rel/delete-relationship id))))
 
   (context "/nodes/:id" [id] (defroutes node-routes
     (GET "/" [] (scb-node/get-node id))

@@ -8,6 +8,7 @@
             [clojurewerkz.neocons.rest.relationships :as rels]
             [clojurewerkz.neocons.rest.cypher :as cypher]))
 
+; DRY this up - also in sleepy-clog-buddies/relationship
 (defn neoconnect []
   (neorest/connect! (env :neo4j-url)))
 

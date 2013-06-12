@@ -35,3 +35,15 @@
     to (nodes/get (read-string toid))
     rel (rels/create from to reltype attributes)]
     (get-relationship (str (:id rel)))))
+
+(defn update-relationship [id attributes]
+  (neoconnect)
+  (let
+    [relationship-attributes (merge (:data (rels/get (read-string id))) (keywordize-keys attributes))]
+    (rels/update (read-string id) relationship-attributes)
+    (get-relationship id)))
+
+(defn delete-relationship [id] 
+  (neoconnect)
+  (rels/delete (read-string id))
+  {:status 204})
