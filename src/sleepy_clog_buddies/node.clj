@@ -15,7 +15,7 @@
 (defn get-all-nodes-of-type [nodetype]
   (neoconnect)
   (let
-    [nodes (cypher/tquery (str "START n=node(*) WHERE n.nodetype = \"" nodetype "\" RETURN n as info, ID(n) as id;"))]
+    [nodes (cypher/tquery (str "START n=node:" nodetype "('*:*') RETURN n as info, ID(n) as id;"))]
     (response (map #(assoc (:data (get % "info")) "id" (get % "id")) nodes))))
 
 (defn get-node [id]
@@ -33,7 +33,7 @@
   (neoconnect)
   (let [node
     (let [node-attributes (assoc attributes "nodetype" nodetype)]
-      (nodes/create node-attributes))]
+      (nodes/create-unique-in-index nodetype "bson_id" (get attributes "bson_id") node-attributes))]
     (get-node (str (:id node)))))
 
 ; need to handle not found nodes

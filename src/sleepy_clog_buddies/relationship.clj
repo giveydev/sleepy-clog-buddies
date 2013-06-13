@@ -33,7 +33,9 @@
   (let [
     from (nodes/get (read-string fromid))
     to (nodes/get (read-string toid))
-    rel (rels/create from to reltype attributes)]
+    bson_ids (str (:bson_id (:data from)) "-" (:bson_id (:data to)))
+    ; arguments: from node, to node, relationship type, index name, key name, value (combinaiton of bson_ids, then properties
+    rel (rels/create-unique-in-index from to reltype reltype "bson_ids" bson_ids attributes)]
     (get-relationship (str (:id rel)))))
 
 (defn update-relationship [id attributes]
