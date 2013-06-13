@@ -7,8 +7,14 @@
             [compojure.route :as route]
             [sleepy-clog-buddies.node :as scb-node]
             [sleepy-clog-buddies.relationship :as scb-rel]))
-  ;(doseq [nodetype '("users" "charities")]
-  ;  (println nodetype))
+
+; Define allow types of node here. This is the only validation this far - any data is allowed
+(def nodetypes
+  {"users"      "user"
+   "charities"  "charity"
+   "moments"    "moment"
+   "businesses" "business"})
+(def noderoutes (re-pattern (clojure.string/join "|" (keys nodetypes))))
 
 (defroutes app-routes
 
@@ -26,13 +32,9 @@
     (PUT    "/" {body :body} (scb-node/update-node id body))
     (DELETE "/" [] (scb-node/delete-node id))))
            
-  (context "/users" [] (defroutes users-routes
-    (GET "/" [] (scb-node/get-all-nodes-of-type "user"))
-    (POST "/" {body :body} (scb-node/create-node "user" body))))
-
-  (context "/charities" [] (defroutes users-routes
-    (GET "/" [] (scb-node/get-all-nodes-of-type "charity"))
-    (POST "/" {body :body} (scb-node/create-node "charity" body))))
+  (context ["/:nodetype", :nodetype noderoutes] [nodetype] (defroutes nodetype-routes
+    (GET "/" [] (scb-node/get-all-nodes-of-type (nodetypes nodetype)))
+    (POST "/" {body :body} (scb-node/create-node (nodetypes nodetype) body))))
 
   (GET "/" [] (response {"listen" "shh"}))
   (route/not-found "Not Found"))
