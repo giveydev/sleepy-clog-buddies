@@ -3,10 +3,10 @@
   (:use cheshire.core)
   (:use ring.util.response)
   (:use clojure.walk)
-  (:require [clojurewerkz.neocons.rest :as neorest]
-            [clojurewerkz.neocons.rest.nodes :as nodes]
+  (:require [clojurewerkz.neocons.rest.nodes :as nodes]
             [clojurewerkz.neocons.rest.relationships :as rels]
-            [clojurewerkz.neocons.rest.cypher :as cypher]))
+            [clojurewerkz.neocons.rest.cypher :as cypher]
+            [sleepy-clog-buddies.neo :as scb-neo]))
 
 (defn getid [urlstr] (last (clojure.string/split urlstr #"\/")))
 
@@ -14,11 +14,8 @@
                         "id" (:id rel) "type" (:type rel)
                         "start" (getid (:start rel)) "end" (getid (:end rel))))
 
-(defn neoconnect []
-  (neorest/connect! (env :neo4j-url)))
-
 (defn get-relationship [id]
-  (neoconnect)
+  (scb-neo/neoconnect)
   (let 
     [rel 
       (try
@@ -29,23 +26,23 @@
       :else (response (relresponse rel)))))
 
 (defn create-relationship [fromid toid reltype attributes]
-  (neoconnect)
+  (scb-neo/neoconnect)
   (let [
     from (nodes/get (read-string fromid))
     to (nodes/get (read-string toid))
-    bson_ids (str (:bson_id (:data from)) "-" (:bson_id (:data to)))
-    ; arguments: from node, to node, relationship type, index name, key name, value (combinaiton of bson_ids, then properties
-    rel (rels/create-unique-in-index from to reltype reltype "bson_ids" bson_ids attributes)]
+    db_ids (str (:db_id (:data from)) "-" (:db_id (:data to)))
+    ; arguments: from node, to node, relationship type, index name, key name, value (combinaiton of db_ids, then properties
+    rel (rels/create-unique-in-index from to reltype reltype "db_ids" db_ids attributes)]
     (get-relationship (str (:id rel)))))
 
 (defn update-relationship [id attributes]
-  (neoconnect)
+  (scb-neo/neoconnect)
   (let
     [relationship-attributes (merge (:data (rels/get (read-string id))) (keywordize-keys attributes))]
     (rels/update (read-string id) relationship-attributes)
     (get-relationship id)))
 
 (defn delete-relationship [id] 
-  (neoconnect)
+  (scb-neo/neoconnect)
   (rels/delete (read-string id))
   {:status 204})

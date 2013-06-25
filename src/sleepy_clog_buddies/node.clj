@@ -3,23 +3,19 @@
   (:use cheshire.core)
   (:use ring.util.response)
   (:use clojure.walk)
-  (:require [clojurewerkz.neocons.rest :as neorest]
-            [clojurewerkz.neocons.rest.nodes :as nodes]
+  (:require [clojurewerkz.neocons.rest.nodes :as nodes]
             [clojurewerkz.neocons.rest.relationships :as rels]
-            [clojurewerkz.neocons.rest.cypher :as cypher]))
-
-; DRY this up - also in sleepy-clog-buddies/relationship
-(defn neoconnect []
-  (neorest/connect! (env :neo4j-url)))
+            [clojurewerkz.neocons.rest.cypher :as cypher]
+            [sleepy-clog-buddies.neo :as scb-neo]))
 
 (defn get-all-nodes-of-type [nodetype]
-  (neoconnect)
+  (scb-neo/neoconnect)
   (let
     [nodes (cypher/tquery (str "START n=node:" nodetype "('*:*') RETURN n as info, ID(n) as id;"))]
     (response (map #(assoc (:data (get % "info")) "id" (get % "id")) nodes))))
 
 (defn get-node [id]
-  (neoconnect)
+  (scb-neo/neoconnect)
   (let 
     [node 
       (try
@@ -30,15 +26,15 @@
       :else (response (assoc (:data node) "id" (:id node))))))
 
 (defn create-node [nodetype attributes]
-  (neoconnect)
+  (scb-neo/neoconnect)
   (let [node
     (let [node-attributes (assoc attributes "nodetype" nodetype)]
-      (nodes/create-unique-in-index nodetype "bson_id" (get attributes "bson_id") node-attributes))]
+      (nodes/create-unique-in-index nodetype "db_id" (get attributes "db_id") node-attributes))]
     (get-node (str (:id node)))))
 
 ; need to handle not found nodes
 (defn update-node [id attributes]
-  (neoconnect)
+  (scb-neo/neoconnect)
   (let
     [node-attributes (merge (:data (nodes/get (read-string id))) (keywordize-keys attributes))]
     (nodes/update (read-string id) node-attributes)
@@ -46,6 +42,6 @@
 
 ; need to handle not found nodes
 (defn delete-node [id] 
-  (neoconnect)
+  (scb-neo/neoconnect)
   (nodes/delete (read-string id))
   {:status 204})
