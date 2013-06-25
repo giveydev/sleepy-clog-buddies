@@ -5,16 +5,12 @@
   (:require [compojure.handler :as handler]
             [ring.middleware.json :as middleware]
             [compojure.route :as route]
+            [sleepy-clog-buddies.shared :as scb-shared]
+            [sleepy-clog-buddies.query :as scb-query]
             [sleepy-clog-buddies.node :as scb-node]
             [sleepy-clog-buddies.relationship :as scb-rel]))
 
-; Define allow types of node here. This is the only validation this far - any data is allowed
-(def nodetypes
-  {"users"      "user"
-   "charities"  "charity"
-   "moments"    "moment"
-   "businesses" "business"})
-(def noderoutes (re-pattern (clojure.string/join "|" (keys nodetypes))))
+(def noderoutes (re-pattern (clojure.string/join "|" (keys scb-shared/nodetypes))))
 
 (defroutes app-routes
 
@@ -33,9 +29,10 @@
     (DELETE "/" [] (scb-node/delete-node id))))
            
   (context ["/:nodetype", :nodetype noderoutes] [nodetype] (defroutes nodetype-routes
-    (GET "/" [] (scb-node/get-all-nodes-of-type (nodetypes nodetype)))
-    (POST "/" {body :body} (scb-node/create-node (nodetypes nodetype) body))))
+    (GET "/" [] (scb-node/get-all-nodes-of-type (scb-shared/nodetypes nodetype)))
+    (POST "/" {body :body} (scb-node/create-node (scb-shared/nodetypes nodetype) body))))
 
+  (POST "/query" {body :body} (scb-query/cypher-query body))
   (GET "/" [] (response {"listen" "shh"}))
   (route/not-found "Not Found"))
 

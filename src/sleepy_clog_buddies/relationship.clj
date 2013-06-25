@@ -6,7 +6,7 @@
   (:require [clojurewerkz.neocons.rest.nodes :as nodes]
             [clojurewerkz.neocons.rest.relationships :as rels]
             [clojurewerkz.neocons.rest.cypher :as cypher]
-            [sleepy-clog-buddies.neo :as scb-neo]))
+            [sleepy-clog-buddies.shared :as scb-shared]))
 
 (defn getid [urlstr] (last (clojure.string/split urlstr #"\/")))
 
@@ -15,7 +15,7 @@
                         "start" (getid (:start rel)) "end" (getid (:end rel))))
 
 (defn get-relationship [id]
-  (scb-neo/neoconnect)
+  (scb-shared/neoconnect)
   (let 
     [rel 
       (try
@@ -26,7 +26,7 @@
       :else (response (relresponse rel)))))
 
 (defn create-relationship [fromid toid reltype attributes]
-  (scb-neo/neoconnect)
+  (scb-shared/neoconnect)
   (let [
     from (nodes/get (read-string fromid))
     to (nodes/get (read-string toid))
@@ -36,13 +36,13 @@
     (get-relationship (str (:id rel)))))
 
 (defn update-relationship [id attributes]
-  (scb-neo/neoconnect)
+  (scb-shared/neoconnect)
   (let
     [relationship-attributes (merge (:data (rels/get (read-string id))) (keywordize-keys attributes))]
     (rels/update (read-string id) relationship-attributes)
     (get-relationship id)))
 
 (defn delete-relationship [id] 
-  (scb-neo/neoconnect)
+  (scb-shared/neoconnect)
   (rels/delete (read-string id))
   {:status 204})

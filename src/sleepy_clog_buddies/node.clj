@@ -6,16 +6,16 @@
   (:require [clojurewerkz.neocons.rest.nodes :as nodes]
             [clojurewerkz.neocons.rest.relationships :as rels]
             [clojurewerkz.neocons.rest.cypher :as cypher]
-            [sleepy-clog-buddies.neo :as scb-neo]))
+            [sleepy-clog-buddies.shared :as scb-shared]))
 
 (defn get-all-nodes-of-type [nodetype]
-  (scb-neo/neoconnect)
+  (scb-shared/neoconnect)
   (let
     [nodes (cypher/tquery (str "START n=node:" nodetype "('*:*') RETURN n as info, ID(n) as id;"))]
     (response (map #(assoc (:data (get % "info")) "id" (get % "id")) nodes))))
 
 (defn get-node [id]
-  (scb-neo/neoconnect)
+  (scb-shared/neoconnect)
   (let 
     [node 
       (try
@@ -26,7 +26,7 @@
       :else (response (assoc (:data node) "id" (:id node))))))
 
 (defn create-node [nodetype attributes]
-  (scb-neo/neoconnect)
+  (scb-shared/neoconnect)
   (let [node
     (let [node-attributes (assoc attributes "nodetype" nodetype)]
       (nodes/create-unique-in-index nodetype "db_id" (get attributes "db_id") node-attributes))]
@@ -34,7 +34,7 @@
 
 ; need to handle not found nodes
 (defn update-node [id attributes]
-  (scb-neo/neoconnect)
+  (scb-shared/neoconnect)
   (let
     [node-attributes (merge (:data (nodes/get (read-string id))) (keywordize-keys attributes))]
     (nodes/update (read-string id) node-attributes)
@@ -42,6 +42,6 @@
 
 ; need to handle not found nodes
 (defn delete-node [id] 
-  (scb-neo/neoconnect)
+  (scb-shared/neoconnect)
   (nodes/delete (read-string id))
   {:status 204})
